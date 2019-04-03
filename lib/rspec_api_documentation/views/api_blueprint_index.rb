@@ -9,11 +9,13 @@ module RspecApiDocumentation
       def sections
         super.map do |section|
           routes = section[:examples].group_by { |e| "#{e.route_uri}#{e.route_optionals}#{e.route_name}" }.map do |route, examples|
-            attrs  = fields(:attributes, examples)
             params = fields(:parameters, examples)
 
             methods = examples.group_by(&:http_method).map do |http_method, examples|
+              attrs  = fields(:attributes, examples)
               {
+                "has_attributes?".to_sym => attrs.size > 0,
+                attributes: attrs,
                 http_method: http_method,
                 description: examples.first.respond_to?(:action_name) && examples.first.action_name,
                 examples: examples
@@ -21,11 +23,11 @@ module RspecApiDocumentation
             end
 
             {
-              "has_attributes?".to_sym => attrs.size > 0,
+              "has_attributes?".to_sym => false,
               "has_parameters?".to_sym => params.size > 0,
               route: format_route(examples[0]),
               route_name: examples[0][:route_name],
-              attributes: attrs,
+              attributes: [],
               parameters: params,
               http_methods: methods
             }
